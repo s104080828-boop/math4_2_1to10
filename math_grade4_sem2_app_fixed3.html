@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>四下數學互動式學習</title>
+  <style>
+    :root{
+      --bg:#f6fbf7;
+      --card:#ffffff;
+      --primary:#3f8f72;
+      --primary2:#5da98a;
+      --accent:#ff9f43;
+      --text:#1f2d2a;
+      --muted:#6b7c78;
+      --pass:#2f9e44;
+      --fail:#d9480f;
+      --shadow:0 8px 24px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#f5fbf6,#eef8ff);color:var(--text)}
+    .app{max-width:1200px;margin:0 auto;padding:20px}
+    .header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+    .title-wrap h1{margin:0;font-size:32px}
+    .title-wrap p{margin:6px 0 0;color:var(--muted)}
+    .badge{background:#fff3e8;color:#b25a00;padding:10px 14px;border-radius:999px;font-weight:700;box-shadow:var(--shadow)}
+    .panel{display:none}
+    .panel.active{display:block}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+    .unit-card{cursor:pointer;transition:.2s transform,.2s box-shadow;border:2px solid transparent}
+    .unit-card:hover{transform:translateY(-3px);border-color:#c8eadc}
+    .unit-no{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;font-size:20px;font-weight:800;margin-bottom:10px}
+    .unit-title{font-size:22px;font-weight:800;margin:4px 0}
+    .unit-sub{color:var(--muted);font-size:14px;line-height:1.5}
+    .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+    button{border:none;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-secondary{background:#e9f6f0;color:var(--primary)}
+    .btn-accent{background:var(--accent);color:#fff}
+    .subgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:16px}
+    .subcard{cursor:pointer;border:2px solid transparent;transition:.2s}
+    .subcard:hover{transform:translateY(-2px);border-color:#ffe0bf}
+    .subcard h3{margin-top:0}
+    .back{background:#fff;border:1px solid #d9ece3;color:var(--primary)}
+    .meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-top:8px}
+    .pill{background:#eef8f2;color:var(--primary);padding:6px 10px;border-radius:999px;font-weight:700}
+    .section-title{font-size:26px;margin:8px 0}
+    .summary-box h4{margin-bottom:8px}
+    .summary-box ul{margin:0;padding-left:20px;line-height:1.8}
+    .question{padding:16px;border:1px solid #e7eeeb;border-radius:14px;margin:14px 0;background:#fff}
+    .question h4{margin:0 0 12px;font-size:18px}
+    .options label{display:block;padding:10px 12px;border:1px solid #dce8e3;border-radius:10px;margin:8px 0;cursor:pointer}
+    .options input{margin-right:8px}
+    .submit-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}
+    .result{padding:14px 16px;border-radius:14px;font-weight:800}
+    .result.pass{background:#eaf7ec;color:var(--pass)}
+    .result.fail{background:#fff1eb;color:var(--fail)}
+    .reward{background:#fff4d8;color:#8a5b00;padding:14px 16px;border-radius:14px;font-weight:800;margin-top:10px}
+    .passage{background:#fffef8;border:1px solid #f3e7c1;border-radius:14px;padding:16px;line-height:1.9;margin-bottom:14px}
+    .challenge-set{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow);margin:16px 0}
+    .small{font-size:14px;color:var(--muted)}
+    .footer-note{margin-top:20px;color:var(--muted);font-size:14px;text-align:center}
+    @media (max-width:640px){
+      .title-wrap h1{font-size:26px}
+      .section-title{font-size:22px}
+      .unit-title{font-size:20px}
+    }
+  
+    .hero-banner{background:linear-gradient(135deg,#fff8e7,#fff1d6);border:2px solid #ffe1a8;position:relative;overflow:hidden}
+    .hero-banner:before,.hero-banner:after{content:"✨";position:absolute;font-size:24px;animation:floatSpark 4s ease-in-out infinite;opacity:.75}
+    .hero-banner:before{top:12px;right:18px}
+    .hero-banner:after{bottom:10px;left:16px;animation-delay:1.2s}
+    .adventure-note{color:#8a5a00;font-weight:700;margin-top:8px}
+    .unit-card,.subcard,button,label{transition:transform .18s ease, box-shadow .18s ease, filter .18s ease}
+    .unit-card:hover,.subcard:hover,button:hover,label:hover{box-shadow:0 10px 24px rgba(0,0,0,.12)}
+    .unit-card:active,.subcard:active,button:active{transform:scale(.98)}
+    .unit-card{position:relative;overflow:hidden}
+    .unit-card::after,.subcard::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.42) 50%,transparent 100%);transform:translateX(-120%);transition:.65s}
+    .unit-card:hover::after,.subcard:hover::after{transform:translateX(120%)}
+    .btn-primary,.btn-accent{position:relative;overflow:hidden}
+    .btn-primary{box-shadow:0 8px 18px rgba(63,143,114,.28)}
+    .btn-accent{box-shadow:0 8px 18px rgba(255,159,67,.28)}
+    .btn-primary:hover,.btn-accent:hover{transform:translateY(-1px)}
+    .pulse{animation:pulseGlow 1.7s infinite}
+    .small{color:var(--muted);line-height:1.7}
+    .question,.challenge-set,.summary-box{position:relative;overflow:hidden}
+    .question.correct{border-color:#b6e2c0;background:#f2fbf4}
+    .question.wrong{border-color:#ffc9b3;background:#fff7f3}
+    .question.unanswered{border-color:#ffe39e;background:#fffaf0}
+    .question.correct::before,.question.wrong::before,.question.unanswered::before{position:absolute;top:10px;right:12px;font-size:20px;font-weight:800}
+    .question.correct::before{content:"✓";color:#2f9e44}
+    .question.wrong::before{content:"✗";color:#d9480f}
+    .question.unanswered::before{content:"？";color:#b88900}
+    .options{display:grid;gap:10px;margin-top:10px}
+    .options label{display:block;padding:10px 12px;border:1px solid #dfebe7;border-radius:12px;background:#fcfffd;cursor:pointer}
+    .options label.selected{border-color:#99cfb8;background:#eef9f3}
+    .options label.correct-opt{border-color:#79c98b;background:#effaf1;font-weight:700}
+    .options label.wrong-opt{border-color:#f3a38d;background:#fff1ec}
+    .passage{line-height:1.95;background:#fffdf8;border:1px solid #f2ead8;padding:16px;border-radius:14px;white-space:pre-wrap}
+    .submit-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:22px 0 4px}
+    .result{padding:16px 18px;border-radius:16px;font-weight:800;margin-top:18px;box-shadow:var(--shadow);animation:riseIn .45s ease}
+    .result.pass{background:#eefaf0;color:#246b35;border:1px solid #c7e9cf}
+    .result.fail{background:#fff3ef;color:#b24b24;border:1px solid #ffd0c0}
+    .reward{margin-top:14px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#fff3cf,#ffe39d);border:1px solid #ffd369;font-weight:800;color:#8a5a00;animation:treasureGlow 1.8s infinite}
+    .review{margin-top:18px}
+    .review .answer-line{margin-top:8px;color:#42524f;line-height:1.8}
+    .review .answer-line strong{color:#1f2d2a}
+    .highlight-tools{position:fixed;right:16px;bottom:16px;display:flex;gap:10px;z-index:1200;flex-direction:column}
+    .highlight-tools button{padding:12px 14px;border-radius:999px;box-shadow:0 8px 18px rgba(0,0,0,.12)}
+    .highlight-mark{background:linear-gradient(transparent 35%, #fff29a 35%, #fff29a 88%, transparent 88%);padding:0 .08em;border-radius:4px}
+    .overlay{position:fixed;inset:0;background:rgba(19,29,28,.48);display:none;align-items:center;justify-content:center;padding:20px;z-index:2000}
+    .overlay.show{display:flex}
+    .treasure-box{max-width:520px;width:min(92vw,520px);background:linear-gradient(180deg,#fffdf6,#fff5dc);border-radius:28px;padding:28px 24px;text-align:center;box-shadow:0 22px 70px rgba(0,0,0,.28);border:3px solid #ffd77d;position:relative;overflow:hidden;animation:riseIn .35s ease}
+    .treasure-box h2{margin:8px 0 10px;font-size:30px}
+    .treasure-box .big-icon{font-size:62px;animation:bob 2s ease-in-out infinite}
+    .treasure-box .score-tag{display:inline-block;margin-top:8px;padding:8px 14px;border-radius:999px;background:#fff3cf;color:#8a5a00;font-weight:800}
+    .treasure-box .loot{margin-top:14px;font-size:24px;font-weight:900;color:#b06700}
+    .fx-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1900}
+    .particle{position:absolute;font-size:24px;animation:particleFly 1.5s ease-out forwards;will-change:transform,opacity}
+    .score-stars{display:flex;justify-content:center;gap:8px;margin-top:10px;font-size:24px}
+    .score-stars span{animation:popIn .35s ease both}
+    .journey-bar{height:14px;background:#edf2ef;border-radius:999px;overflow:hidden;margin:14px 0 4px;border:1px solid #dde8e3}
+    .journey-fill{height:100%;background:linear-gradient(90deg,#ffcf5a,#ff9f43);width:0;border-radius:999px;transition:width .6s ease}
+    .shake{animation:shake .35s ease}
+    @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 rgba(255,159,67,0)}50%{box-shadow:0 0 0 10px rgba(255,159,67,.14)}}
+    @keyframes treasureGlow{0%,100%{box-shadow:0 0 0 rgba(255,211,105,0)}50%{box-shadow:0 0 0 12px rgba(255,211,105,.18)}}
+    @keyframes riseIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes floatSpark{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(12deg)}}
+    @keyframes particleFly{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(.6)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(1.5)}}
+    @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes popIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+    @media (max-width: 640px){.title-wrap h1{font-size:26px}.section-title{font-size:22px}.treasure-box h2{font-size:24px}}
+
+  
+.music-dock{position:fixed;left:16px;bottom:18px;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-radius:16px;box-shadow:var(--shadow);padding:10px 12px;display:flex;align-items:center;gap:10px;max-width:min(92vw,380px)}
+.music-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.music-meta strong{font-size:14px}
+.music-meta span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-dock .tiny{padding:10px 12px;border-radius:10px;font-size:14px}
+@media (max-width:700px){.music-dock{left:10px;right:10px;bottom:84px;max-width:none}}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="title-wrap">
+      <h1>國小四下數學互動式學習</h1>
+      <p>10 個單元 × 單元重點 × 互動式問題 × 素養挑戰</p>
+    </div>
+    <div class="badge">85 分以上獎勵：31 冰淇淋 🍦</div>
+  </div>
+
+  <section id="homePanel" class="panel active">
+    <div class="card">
+      <div class="section-title">首頁｜選擇單元</div>
+      <div class="small">每個單元都包含：本單元重點整理、互動式問題（滿分 100）、素養挑戰（每次自 20 題組亂數抽 5 題組，滿分 100）。</div>
+    </div>
+    <div id="unitGrid" class="grid" style="margin-top:16px"></div>
+  </section>
+
+  <section id="unitPanel" class="panel"></section>
+  <section id="contentPanel" class="panel"></section>
+
+  <div class="footer-note">建議做法：先看重點，再做互動題，最後挑戰素養題。數學不怕慢，怕的是亂衝。</div>
+</div>
+
+<script>
+const units = [
+  {
+    id:1,
+    title:'概數',
+    subtitle:'生活中的概數、無條件捨去法、無條件進入法、四捨五入法',
+    summary:[
+      '知道概數是「接近的數」，常用在快速估算與生活判斷。',
+      '無條件捨去法：直接去掉後面數字，不管大小。',
+      '無條件進入法：只要取概數，就往上一個單位進位。',
+      '四捨五入法：看下一位，4 以下捨去，5 以上進位。',
+      '要先看清楚題目要求取概數到哪一位：十位、百位、千位、萬位。',
+      '常見應用：票價、人口、金額、距離、物品數量估算。'
+    ],
+    practiceKeywords:['概數','四捨五入','無條件進入','無條件捨去','取概數','估算'],
+    literacyConcept:'概數與估算',
+    literacyFocus:['判斷哪種取概數方法合適','比較估算值與原數的關係','理解題目中為何用估算','依情境決定取到哪一位']
+  },
+  {
+    id:2,
+    title:'四則運算',
+    subtitle:'列式與逐步求解、先乘除後加減、由左而右算、四則運算性質',
+    summary:[
+      '會把文字題列成算式，不只會一步一步算，也要會併式。',
+      '有括號先算括號。',
+      '沒有括號時，先乘除、後加減。',
+      '同級運算要由左而右。',
+      '要養成檢查運算順序的習慣，避免看見數字就亂算。',
+      '常見情境：購物、分組、每人幾個、共幾元、還剩多少。'
+    ],
+    practiceKeywords:['列式','先乘除後加減','由左而右','括號','四則運算','併式'],
+    literacyConcept:'四則運算',
+    literacyFocus:['從情境找正確算式','判斷運算順序','分辨哪一種列式較合理','檢查答案是否符合情境']
+  },
+  {
+    id:3,
+    title:'垂直、平行與四邊形',
+    subtitle:'垂直與平行、長方形與正方形、認識四邊形與平行四邊形',
+    summary:[
+      '垂直：兩條直線交成直角。',
+      '平行：兩條直線延長後也不會相交。',
+      '長方形有四個直角，對邊平行且等長。',
+      '正方形有四個直角，而且四邊等長。',
+      '平行四邊形的對邊互相平行。',
+      '要會看圖、會分類，也要會在方格紙上畫出指定圖形。'
+    ],
+    practiceKeywords:['垂直','平行','長方形','正方形','平行四邊形','四邊形'],
+    literacyConcept:'平面圖形特徵',
+    literacyFocus:['依特徵辨認圖形','判斷邊與角的關係','看生活物件對應哪種圖形','從描述反推圖形名稱']
+  },
+  {
+    id:4,
+    title:'分數（一）',
+    subtitle:'同分母分數的加減法、分數的整數倍',
+    summary:[
+      '分母表示平均分成幾份，分子表示取了幾份。',
+      '同分母分數加減：分母不變，只加減分子。',
+      '能從圖形、數線與文字情境理解分數。',
+      '整數倍的分數可以看成重複加。',
+      '要先分清楚題目是合起來、用掉、剩下，才知道要加或減。',
+      '常見錯誤是把分母也一起加減。'
+    ],
+    practiceKeywords:['分數','同分母','加減法','分子','分母','整數倍'],
+    literacyConcept:'分數大小與運算',
+    literacyFocus:['從情境判斷用加或減','理解分數代表的份量','用圖意比較剩下或合起來的量','連結重複加與整數倍']
+  },
+  {
+    id:5,
+    title:'形體的大小',
+    subtitle:'認識體積、認識立方公分、體積有多大',
+    summary:[
+      '體積是形體占有空間的大小。',
+      '容量是容器能裝多少，和體積概念相關但不完全相同。',
+      '立方公分是常見的體積單位。',
+      '會用小立方體堆疊數量來判斷體積。',
+      '要注意有些方塊被遮住，也可能仍然存在。',
+      '這一單元重點是建立量感與空間感，不是死背公式。'
+    ],
+    practiceKeywords:['體積','容量','立方公分','小立方體','空間','形體'],
+    literacyConcept:'體積與容量',
+    literacyFocus:['從描述判斷誰占空間較大','數立方體推體積','區分面積與體積','把生活容器和容量概念連結']
+  },
+  {
+    id:6,
+    title:'小數乘法',
+    subtitle:'乘數是一位小數、一位小數乘以整數、二位小數乘以整數',
+    summary:[
+      '會用整數乘法的方式先算，再決定小數點位置。',
+      '一位小數乘整數、二位小數乘整數都要熟練。',
+      '能從錢、長度、重量情境理解小數乘法。',
+      '小數點位置不能亂點，要依原數共有幾位小數決定。',
+      '0.6 × 8 和 6 × 8 不一樣，0 不可忽略。',
+      '計算完可先估算，檢查答案是否合理。'
+    ],
+    practiceKeywords:['小數乘法','一位小數','二位小數','整數','小數點','估算'],
+    literacyConcept:'小數乘法',
+    literacyFocus:['從情境列式','判斷答案大約範圍','檢查小數點位置','理解單價與數量的關係']
+  },
+  {
+    id:7,
+    title:'周長與面積',
+    subtitle:'長方形與正方形的周長、長方形與正方形的面積、平方公尺與平方公分',
+    summary:[
+      '周長是外框一圈的長度；面積是表面的大小。',
+      '長方形周長＝（長＋寬）× 2。',
+      '長方形面積＝長 × 寬。',
+      '正方形周長＝邊長 × 4；面積＝邊長 × 邊長。',
+      '面積單位要寫平方公分或平方公尺。',
+      '最常見錯誤是把周長與面積公式混在一起。'
+    ],
+    practiceKeywords:['周長','面積','長方形','正方形','平方公分','平方公尺'],
+    literacyConcept:'周長與面積',
+    literacyFocus:['辨認該算周長還是面積','應用公式解生活題','理解單位意義','比較不同設計的圍邊或鋪面需求']
+  },
+  {
+    id:8,
+    title:'分數（二）',
+    subtitle:'等值分數、簡單異分母分數比較、簡單異分母分數加減、分數與小數',
+    summary:[
+      '等值分數表示寫法不同，但大小相同。',
+      '比較分數大小時，不可只看分母或分子其中一個。',
+      '可透過畫圖、通分或生活情境理解異分母分數。',
+      '分數與小數之間有對應關係，例如 1/2 和 0.5。',
+      '先理解分數代表的量，再做比較與加減。',
+      '常見錯誤是分母越大就誤以為分數越大。'
+    ],
+    practiceKeywords:['等值分數','異分母','比較大小','分數與小數','通分','分數'],
+    literacyConcept:'分數比較與連結',
+    literacyFocus:['從圖比較分數大小','判斷等值分數','用生活情境理解異分母比較','連結小數表示']
+  },
+  {
+    id:9,
+    title:'時間的計算',
+    subtitle:'2時制和24時制、日小時換算、時分秒換算與加減',
+    summary:[
+      '要熟悉 2 時制和 24 時制之間的轉換。',
+      '1 日＝24 小時，1 小時＝60 分，1 分＝60 秒。',
+      '時間加減要注意跨整點、跨中午、跨日期。',
+      '先統一單位，再比較或計算較不容易錯。',
+      '應用題常問「經過多久」、「幾點開始」、「幾點結束」。',
+      '60 進位與借位是這單元最常見失分點。'
+    ],
+    practiceKeywords:['24時制','時間','時分秒','換算','經過多久','進位'],
+    literacyConcept:'時間計算',
+    literacyFocus:['比較時刻與經過時間','做時分秒換算','從活動流程表判斷時間','處理跨中午或跨日的問題']
+  },
+  {
+    id:10,
+    title:'規律',
+    subtitle:'數的規律、奇偶數的規律、圖形的規律',
+    summary:[
+      '觀察數列時，要看每一步是加幾、減幾、乘幾或其他變化。',
+      '奇數與偶數可以從個位數判斷。',
+      '圖形規律常出現在重複排列或逐步增加。',
+      '能根據規則往前推，也能反向找前一項。',
+      '題目重點不是背答案，而是說出規律。',
+      '現在的素養題很常把規律放進生活情境中。'
+    ],
+    practiceKeywords:['規律','數列','奇數','偶數','圖形規律','推理'],
+    literacyConcept:'規律與推理',
+    literacyFocus:['發現變化規則','從表格找規律','用規律預測下一步','在情境中解釋規律為什麼成立']
+  }
+];
+
+const names = ['小安','小庭','小妍','小宇','小辰','小恩','小潔','小凱','小彤','小軒'];
+const places = ['園遊會','圖書館','合作社','操場','自然教室','校外教學','社區公園','市場','展覽館','活動中心'];
+const goals = ['估算','比較','規畫','整理','記錄','分配','檢查','說明','設計','計算'];
+
+
+const storyThemes = [
+  {topic:'迷宮探險料理隊', place:'地下迷宮補給站', vibe:'補給、分裝與採集紀錄', hero:'萊歐斯', partner:'瑪露希爾'},
+  {topic:'精靈旅人魔法筆記', place:'北方高原旅店', vibe:'旅程紀錄、法術材料與時間安排', hero:'芙莉蓮', partner:'費倫'},
+  {topic:'露營料理直播', place:'河邊露營區', vibe:'食材採買、料理分配與拍片流程', hero:'穆寇達', partner:'小多拉'},
+  {topic:'遊戲實況挑戰', place:'校園創客教室', vibe:'任務點數、道具箱與闖關規畫', hero:'小宇', partner:'小安'},
+  {topic:'YT短片拍攝日', place:'社區活動中心', vibe:'拍攝排程、觀看數與剪輯素材整理', hero:'小妍', partner:'小庭'},
+  {topic:'像素建築大賽', place:'方塊城市展場', vibe:'方塊數量、外框設計與材料估算', hero:'小凱', partner:'小彤'},
+  {topic:'動畫祭典嘉年華', place:'星光展覽館', vibe:'票券、攤位、周邊商品與舞台時間表', hero:'小潔', partner:'小辰'},
+  {topic:'寶可風寵物散步日', place:'彩虹公園', vibe:'步數、時間、點心分配與路線規畫', hero:'小軒', partner:'小恩'},
+  {topic:'校園桌遊王決賽', place:'圖書館多功能室', vibe:'積分、回合規律與獎勵兌換', hero:'小晴', partner:'小凱'},
+  {topic:'冰淇淋甜點任務', place:'31 冰淇淋合作店', vibe:'口味票選、份量安排與購物計算', hero:'小彤', partner:'小宇'},
+  {topic:'神祕海底郵差站', place:'玻璃海洋館', vibe:'郵件整理、送件時間與路線表', hero:'小海', partner:'小藍'},
+  {topic:'機器人修理研究社', place:'未來工坊', vibe:'零件清單、維修流程與測試記錄', hero:'阿洛', partner:'米亞'},
+  {topic:'恐龍化石搜查隊', place:'山谷挖掘營地', vibe:'碎片分類、標本編號與距離估算', hero:'小岳', partner:'小詠'},
+  {topic:'魔法森林採藥記', place:'月光樹屋', vibe:'藥草份量、背包容量與採集順序', hero:'艾琳', partner:'諾亞'},
+  {topic:'校慶尋寶地圖戰', place:'操場闖關區', vibe:'線索排序、寶物數量與時間規畫', hero:'小樂', partner:'小南'},
+  {topic:'星空音樂會後台', place:'戶外大舞台', vibe:'曲目安排、座位票券與器材搬運', hero:'小璇', partner:'小柏'},
+  {topic:'漫畫新刊上架日', place:'書店閱讀角', vibe:'架位整理、折扣計算與庫存盤點', hero:'小杏', partner:'小森'},
+  {topic:'滑板挑戰練習場', place:'極限運動公園', vibe:'圈數紀錄、時間統計與道具分配', hero:'阿翔', partner:'阿布'},
+  {topic:'甜甜圈工坊任務', place:'香草烘焙教室', vibe:'麵糰分份、價格估算與包裝數量', hero:'小莓', partner:'可可'},
+  {topic:'雲端寵物養成季', place:'數位冒險伺服城', vibe:'點數兌換、升級規律與每日任務', hero:'晴晴', partner:'阿諾'}
+];
+const storyOpeners = [
+  '一大早，', '放學後，', '週末任務開始前，', '在活動正式開始時，', '準備直播前，',
+  '老師宣布新回合後，', '大家排隊入場時，', '整理物資時，', '剛完成上一關時，', '任務倒數前，',
+  '午休過後，', '傍晚集合時，', '晨間暖身後，', '收到新通知後，', '闖關地圖展開時，',
+  '主持人點名後，', '拍攝第一鏡前，', '志工集合時，', '補給箱打開時，', '計分板更新後，'
+];
+const storyClosers = [
+  '請你根據這份紀錄，把真正要算的數學問題找出來。',
+  '讀懂情境中的數量關係後，再下手計算，就不容易被長文字騙倒。',
+  '這題重點不是背公式，而是先看懂文字裡到底在問什麼。',
+  '現在輪到你從故事中抓出條件，算出正確答案。',
+  '只要把數字和單位看清楚，這段故事其實就是一題數學題。',
+  '請留意哪些資訊是關鍵條件，哪些只是故事背景。',
+  '把閱讀變成整理線索，你就會發現答案其實藏得不深。',
+  '現在請依照故事中的資料完成四題挑戰。',
+  '別急著選答案，先把題目中的數量與單位圈起來再算。',
+  '如果先把重要數字劃記，再想運算順序，會更容易答對。'
+];
+function pickTheme(index){ return storyThemes[index % storyThemes.length]; }
+function opener(index){ return storyOpeners[index % storyOpeners.length]; }
+function closer(index){ return storyClosers[index % storyClosers.length]; }
+
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderHome(){
+  const grid = document.getElementById('unitGrid');
+  grid.innerHTML = units.map(u => `
+    <div class="card unit-card" onclick="openUnit(${u.id})">
+      <div class="unit-no">${u.id}</div>
+      <div class="unit-title">第${u.id}單元｜${u.title}</div>
+      <div class="unit-sub">${u.subtitle}</div>
+      <div class="meta"><span class="pill">重點整理</span><span class="pill">互動式問題</span><span class="pill">素養挑戰</span></div>
+    </div>
+  `).join('');
+}
+
+function openUnit(unitId){
+  const u = units.find(x=>x.id===unitId);
+  const panel = document.getElementById('unitPanel');
+  panel.innerHTML = `
+    <div class="toolbar">
+      <button class="back" onclick="showPanel('homePanel')">← 返回首頁</button>
+      <div class="pill">第${u.id}單元</div>
+    </div>
+    <div class="card">
+      <div class="section-title">${u.title}</div>
+      <div class="small">${u.subtitle}</div>
+      <div class="subgrid">
+        <div class="card subcard" onclick="openSummary(${u.id})">
+          <h3>本單元重點整理</h3>
+          <p>快速掌握核心概念、易錯點與考試常見方向。</p>
+        </div>
+        <div class="card subcard" onclick="openPractice(${u.id})">
+          <h3>互動式問題</h3>
+          <p>依第一單元題型風格設計，滿分 100。</p>
+        </div>
+        <div class="card subcard" onclick="openChallenge(${u.id})">
+          <h3>素養挑戰</h3>
+          <p>每次從 20 題組亂數抽 5 題組，共 20 題，滿分 100。</p>
+        </div>
+      </div>
+    </div>`;
+  showPanel('unitPanel');
+}
+
+function openSummary(unitId){
+  const u = units.find(x=>x.id===unitId);
+  const panel = document.getElementById('contentPanel');
+  panel.innerHTML = `
+    <div class="toolbar">
+      <button class="back" onclick="openUnit(${u.id})">← 返回單元</button>
+      <div class="pill">第${u.id}單元｜重點整理</div>
+    </div>
+    <div class="card summary-box">
+      <div class="section-title">${u.title}｜本單元重點整理</div>
+      <h4>核心重點</h4>
+      <ul>${u.summary.map(x=>`<li>${x}</li>`).join('')}</ul>
+      <h4 style="margin-top:18px">考前提醒</h4>
+      <ul>
+        <li>先看題目到底在問什麼，再決定要用哪個概念。</li>
+        <li>看到文字題，先圈關鍵詞，再列式。</li>
+        <li>做完至少回頭檢查一次單位、答案大小與題意是否合理。</li>
+      </ul>
+    </div>`;
+  showPanel('contentPanel');
+  attachOptionEffects(panel);
+}
+
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function createPracticeBank(unit){
+  const t = unit.title;
+  const kw = unit.practiceKeywords;
+  const banks = {
+    1:[
+      ['5603 用四捨五入法取概數到千位，結果是多少？',['5000','6000','5600','56000'],1],
+      ['2499 用四捨五入法取概數到千位，結果是多少？',['2000','3000','2500','2490'],0],
+      ['6801 用無條件捨去法取概數到百位，結果是多少？',['6900','6800','6810','6000'],1],
+      ['6801 用無條件進入法取概數到百位，結果是多少？',['6800','6810','6900','7000'],2],
+      ['下列哪一個最適合用概數表示？',['我的座號','今天操場大約有幾百人','鉛筆盒裡有幾枝筆','數學考了幾分'],1],
+      ['31555 取概數到萬位，四捨五入後是多少？',['30000','32000','40000','31000'],0],
+      ['把 9876 取概數到十位，要看哪一位？',['個位','十位','百位','千位'],0],
+      ['哪一種方法得到的概數一定不大於原數？',['四捨五入','無條件進入','無條件捨去','都一樣'],2],
+      ['4999 用無條件進入法取概數到千位，結果是多少？',['4000','5000','4990','6000'],1],
+      ['商店今天賣出 198 張門票，若要向百位估算，大約是多少張？',['100','200','190','300'],1],
+      ['7327 取概數到百位，若結果是 7300，可能用哪一種方法？',['無條件捨去','四捨五入','無條件進入','以上皆可'],0],
+      ['一袋糖有 46 顆，要買到至少 200 顆，用哪種想法最合適？',['概數估算','只看個位','不用計算','只看十位'],0]
+    ],
+    2:[
+      ['算式 24 + 6 × 3 的正確答案是？',['90','42','30','54'],1],
+      ['算式 (24 + 6) × 3 的正確答案是？',['90','42','30','54'],0],
+      ['48 ÷ 6 × 2 要依什麼順序算？',['先乘後除','由左而右','先加減','隨便'],1],
+      ['下列哪個算式最適合表示「每盒 8 顆，買 6 盒，又送 5 顆」？',['8 + 6 + 5','8 × 6 + 5','8 × (6 + 5)','8 + 6 × 5'],1],
+      ['7 × 5 - 12 的答案是？',['23','35','47','17'],0],
+      ['20 - 4 ÷ 2 的答案是？',['8','18','16','10'],1],
+      ['先算括號的算式是？',['16 + 8 ÷ 4','(16 + 8) ÷ 4','16 + (8 ÷ 4)','都一樣'],1],
+      ['兩步驟文字題最重要的第一步是？',['先猜答案','先列式','先看最後一個數字','先乘'],1],
+      ['36 ÷ 3 + 4 的答案是？',['8','16','12','15'],1],
+      ['36 ÷ (3 + 4) 的答案是？',['5 餘 1','12','8','7'],0],
+      ['下列哪個敘述正確？',['同級運算從右到左','先加減後乘除','同級運算由左到右','括號最後算'],2],
+      ['買 4 包，每包 25 元，再加飲料 18 元，應列式為？',['25 + 4 + 18','25 × 4 + 18','25 × (4 + 18)','4 + 25 × 18'],1]
+    ],
+    3:[
+      ['兩條直線交成直角，稱為什麼？',['平行','垂直','重疊','對稱'],1],
+      ['兩條直線延長後永不相交，稱為什麼？',['垂直','相等','平行','斜交'],2],
+      ['四個角都是直角、四邊等長的圖形是？',['長方形','梯形','平行四邊形','正方形'],3],
+      ['對邊互相平行的圖形一定是？',['三角形','平行四邊形類型','圓形','任何圖形'],1],
+      ['長方形的特徵是？',['四邊都一樣長','只有一組對邊平行','四個角都是直角','沒有直角'],2],
+      ['下列何者通常只有一組對邊平行？',['正方形','梯形','長方形','菱形'],1],
+      ['在方格紙上畫一條與已知線段平行的線，最要注意什麼？',['長短相同','方向相同、間距固定','一定要穿過同一點','一定是直角'],1],
+      ['正方形和長方形共同的特徵是？',['四邊都等長','都有四個直角','只有一組對邊平行','沒有直角'],1],
+      ['看窗框最常看到哪一類圖形？',['長方形','三角形','圓形','梯形'],0],
+      ['判斷垂直最常用的工具是？',['尺','圓規','三角板','量角器'],2],
+      ['下列敘述何者正確？',['平行線一定會相交','垂直線一定形成直角','長方形沒有平行邊','正方形沒有直角'],1],
+      ['如果四個角都是直角，但只有對邊等長，這圖形是？',['正方形','長方形','梯形','三角形'],1]
+    ],
+    4:[
+      ['3/8 + 2/8 = ?',['5/8','5/16','1/8','6/8'],0],
+      ['7/10 - 4/10 = ?',['3/10','3/20','11/10','4/3'],0],
+      ['同分母分數相加時，分母要怎麼變？',['一起加','一起減','不變','看分子'],2],
+      ['1 個披薩平均分成 8 片，吃了 3 片，吃了全披薩的多少？',['3/5','3/8','8/3','5/8'],1],
+      ['2 × 3/7 表示什麼？',['3/14','6/7','5/7','3/9'],1],
+      ['哪一個是分數中的分母？',['上面的數','下面的數','最大的數','最小的數'],1],
+      ['5/9 + 1/9 = ?',['6/18','6/9','4/9','5/10'],1],
+      ['6/12 - 2/12 = ?',['4/12','8/12','4/24','3/12'],0],
+      ['分數文字題看到「剩下」最常用哪一種運算？',['加法','減法','乘法','除法'],1],
+      ['4 個 1/6 合起來是多少？',['4/6','1/24','5/6','6/4'],0],
+      ['下列哪個說法正確？',['分母也要一起加','同分母加減只算分子','分子固定不變','分數不能做加減'],1],
+      ['把一條彩帶平均剪成 10 段，用掉 2 段，剩下多少？',['8/10','2/10','12/10','10/8'],0]
+    ],
+    5:[
+      ['形體占有空間的大小叫什麼？',['面積','周長','體積','長度'],2],
+      ['容量最常用來描述什麼？',['平面大小','邊長','容器能裝多少','重量'],2],
+      ['1 個邊長 1 公分的小正方體，體積單位可說是？',['1 平方公分','1 立方公分','1 公分','1 公升'],1],
+      ['數小立方體時，最要注意什麼？',['只數看得到的顏色','看有沒有被遮住的方塊','只看最上面一層','只看外框'],1],
+      ['下列哪個最適合用容量表示？',['操場大小','水壺能裝多少水','書本封面大小','繩子長度'],1],
+      ['同樣是 8 個小立方體，排法不同，體積會怎樣？',['一定不同','可能不同','一樣大','不一定能判斷'],2],
+      ['面積和體積最大的不同是？',['一個看顏色，一個看形狀','一個看表面，一個看占空間','一個只用公分','沒有不同'],1],
+      ['牛奶盒比較常討論哪一種量？',['面積','容量','周長','角度'],1],
+      ['由 12 個 1 立方公分方塊組成的形體，體積是多少？',['12 立方公分','12 平方公分','12 公分','120 立方公分'],0],
+      ['哪種行為最像在比較體積？',['比較誰比較高','比較誰占空間較大','比較誰比較重','比較誰比較長'],1],
+      ['一個容器標示 500 毫升，這主要是在說？',['面積','容量','體積單位只有立方公分','周長'],1],
+      ['用小立方體堆成形體後，若再加 3 個方塊，體積會？',['減少','不變','增加 3 立方公分','增加 3 平方公分'],2]
+    ],
+    6:[
+      ['3.2 × 4 = ?',['12.8','1.28','128','7.2'],0],
+      ['0.6 × 8 = ?',['48','4.8','0.48','6.8'],1],
+      ['2.35 × 3 = ?',['7.05','70.5','6.15','7.5'],0],
+      ['小數乘整數時，最重要要注意什麼？',['顏色','小數點位置','符號大小','分母'],1],
+      ['每枝筆 12.5 元，買 2 枝，共多少元？',['14.5','25','24.5','125'],1],
+      ['1.2 公尺的繩子有 3 條，共多少公尺？',['3.6','36','4.2','1.5'],0],
+      ['0.25 × 4 = ?',['1','10','0.1','0.04'],0],
+      ['4.08 × 2 = ?',['8.16','81.6','6.08','8.8'],0],
+      ['先估算再檢查答案，主要是為了？',['讓題目變難','確認答案合不合理','不用直式','省略小數點'],1],
+      ['8 × 0.7 的答案最接近？',['56','5.6','0.56','6.7'],1],
+      ['哪個答案不可能是 1.5 × 6 的結果？',['9','0.9','9.0','約 10'],1],
+      ['一盒果汁 2.4 公升，5 盒共有多少公升？',['12','7.4','10.5','1.2'],0]
+    ],
+    7:[
+      ['長方形周長公式是？',['長 × 寬','(長 + 寬) × 2','長 + 寬','邊長 × 4'],1],
+      ['長方形面積公式是？',['長 × 寬','(長 + 寬) × 2','邊長 × 4','長 ÷ 寬'],0],
+      ['正方形周長公式是？',['邊長 × 4','邊長 × 邊長','長 + 寬','邊長 × 2'],0],
+      ['正方形面積公式是？',['邊長 × 4','邊長 + 邊長','邊長 × 邊長','長 × 寬 × 2'],2],
+      ['下列何者是面積單位？',['公分','平方公分','公尺','分鐘'],1],
+      ['一個長方形長 8 公分、寬 3 公分，面積是多少？',['24 平方公分','22 公分','11 平方公分','16 平方公分'],0],
+      ['一個長方形長 8 公分、寬 3 公分，周長是多少？',['24 公分','22 公分','11 公分','16 公分'],1],
+      ['正方形邊長 6 公分，周長是多少？',['12','24','36','18'],1],
+      ['正方形邊長 6 公分，面積是多少？',['12','24','36','18'],2],
+      ['鋪地板通常比較的是？',['周長','面積','高度','角度'],1],
+      ['幫相框外圍綁緞帶通常比較的是？',['面積','周長','體積','容量'],1],
+      ['最常見的錯誤是？',['把周長和面積分開','把周長公式用在面積題','單位寫對','先看題意'],1]
+    ],
+    8:[
+      ['哪一組是等值分數？',['1/2 和 2/4','1/2 和 2/3','3/4 和 4/5','1/3 和 1/4'],0],
+      ['下列哪個分數比較大？1/2 或 1/4',['1/2','1/4','一樣大','無法比較'],0],
+      ['把 1/2 寫成小數是？',['0.2','0.25','0.5','2.0'],2],
+      ['分母越大，若分子一樣，代表每一份怎樣？',['越大','越小','不變','看不到'],1],
+      ['2/3 和 4/6 的關係是？',['2/3 較大','4/6 較大','一樣大','無法比較'],2],
+      ['比較 3/4 和 2/4，誰比較大？',['3/4','2/4','一樣大','不一定'],0],
+      ['下列哪個最接近 0.5？',['1/10','1/2','3/4','4/5'],1],
+      ['哪種方法可以幫助比較異分母分數？',['只看分子','畫圖或找等值分數','只看分母','猜'],1],
+      ['1/3 和 1/6，誰比較大？',['1/3','1/6','一樣大','無法比較'],0],
+      ['等值分數表示什麼？',['寫法不同，大小可能相同','分母越大越好','只能在圖上用','不能比較'],0],
+      ['把 2/10 寫成小數是？',['2.0','0.2','0.02','0.5'],1],
+      ['哪個敘述正確？',['分母大就分數大','1/2 一定比 1/3 大','分數不能和小數連結','等值分數大小不同'],1]
+    ],
+    9:[
+      ['下午 3 時用 24 時制表示是？',['3:00','13:00','15:00','23:00'],2],
+      ['1 小時等於幾分鐘？',['10','60','100','24'],1],
+      ['1 分鐘等於幾秒？',['60','100','30','24'],0],
+      ['2 日等於幾小時？',['24','36','48','60'],2],
+      ['從 8:20 到 9:05，經過多久？',['35 分','45 分','55 分','65 分'],1],
+      ['17:30 用 2 時制表示是？',['下午 5:30','上午 5:30','下午 7:30','晚上 17:30'],0],
+      ['90 分鐘等於？',['1 小時 20 分','1 小時 30 分','2 小時','30 分'],1],
+      ['120 秒等於？',['1 分','2 分','20 分','12 分'],1],
+      ['從上午 11:40 到下午 1:10，經過多久？',['1 小時 10 分','1 小時 20 分','1 小時 30 分','2 小時'],2],
+      ['23:00 到隔天 1:00，經過多久？',['1 小時','2 小時','3 小時','24 小時'],1],
+      ['時間計算最常見要先做什麼？',['換顏色','統一單位','先乘','先猜'],1],
+      ['哪個敘述正確？',['24 時制下午都加 10','24 時制下午 1 點是 13 點','1 小時等於 100 分','1 分鐘等於 100 秒'],1]
+    ],
+    10:[
+      ['2,4,6,8,? 下一個數是？',['9','10','12','14'],1],
+      ['3,6,9,12,? 下一個數是？',['14','15','16','18'],1],
+      ['1,3,5,7 是哪一類數？',['偶數','奇數','質數','分數'],1],
+      ['個位數是 8 的數通常是？',['奇數','偶數','質數','分數'],1],
+      ['圖形規律最重要是觀察什麼？',['顏色漂亮不漂亮','每一步怎麼變','大小一定相同','角一定是直角'],1],
+      ['10,20,30,40 的規律是？',['每次加 5','每次加 10','每次乘 2','每次減 10'],1],
+      ['7,14,21,28 的規律是？',['每次加 7','每次加 14','每次乘 3','奇偶交替'],0],
+      ['下列哪個是偶數？',['15','27','32','43'],2],
+      ['如果圖形每次多 2 個方塊，第 1 次有 3 個，第 2 次應有幾個？',['4','5','6','7'],1],
+      ['找規律時，不適合的做法是？',['比較前後差多少','看有沒有重複','亂猜不檢查','用表格整理'],2],
+      ['1,4,7,10 的規律是？',['每次加 2','每次加 3','每次加 4','每次減 3'],1],
+      ['哪個敘述正確？',['奇數加奇數一定是奇數','偶數加偶數一定是偶數','偶數沒有規律','圖形規律不能預測'],1]
+    ]
+  };
+  return shuffle(banks[unit.id]).slice(0,10);
+}
+
+function openPractice(unitId){
+  const u = units.find(x=>x.id===unitId);
+  const bank = createPracticeBank(u);
+  const panel = document.getElementById('contentPanel');
+  panel.innerHTML = `
+    <div class="toolbar">
+      <button class="back" onclick="openUnit(${u.id})">← 返回單元</button>
+      <div class="pill">第${u.id}單元｜互動式問題</div>
+      <button class="btn-secondary" onclick="openPractice(${u.id})">重新出題</button>
+    </div>
+    <div class="card">
+      <div class="section-title">${u.title}｜互動式問題</div>
+      <div class="small">共 10 題，每題 10 分，滿分 100。答題時可用螢光筆先劃記關鍵資訊。</div>
+      <form id="practiceForm">
+        ${bank.map((q,idx)=>`
+          <div class="question">
+            <h4>${idx+1}. ${q[0]}</h4>
+            <div class="options">
+              ${q[1].map((opt,i)=>`<label><input type="radio" name="q${idx}" value="${i}">${opt}</label>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+        <div class="submit-row">
+          <button type="button" class="btn-primary" onclick='gradePractice(${JSON.stringify(bank).replace(/'/g,"&#39;")}, ${u.id})'>交卷</button>
+        </div>
+      </form>
+      <div id="practiceResult"></div>
+    </div>`;
+  showPanel('contentPanel');
+  attachOptionEffects(panel);
+}
+
+function gradePractice(bank, unitId){
+  const form = document.getElementById('practiceForm');
+  let correct = 0;
+  bank.forEach((q,idx)=>{
+    const chosen = form.querySelector(`input[name="q${idx}"]:checked`);
+    if(chosen && Number(chosen.value) === q[2]) correct++;
+  });
+  const score = correct * 10;
+  document.querySelectorAll('#practiceForm .question').forEach((box,idx)=>{
+    const chosen = form.querySelector(`input[name="q${idx}"]:checked`);
+    box.classList.remove('correct','wrong','unanswered');
+    if(!chosen) box.classList.add('unanswered');
+    else if(Number(chosen.value)===bank[idx][2]) box.classList.add('correct');
+    else box.classList.add('wrong');
+  });
+  let html = `<div class="result ${score>=60?'pass':'fail'}">成績：${score} 分｜答對 ${correct} / 10 題｜${score>=60?'及格':'再練習一次會更穩'}</div>`;
+  if(score>=85) html += `<div class="reward">恭喜達成 85 分以上！獎勵：31 冰淇淋 🍦</div>`;
+  html += reviewBlockForPractice(bank, form);
+  html += `<div class="submit-row"><button class="btn-secondary" onclick="openPractice(${unitId})">再挑戰一次</button></div>`;
+  document.getElementById('practiceResult').innerHTML = html;
+  if(score>=60) playGood(); else playBad();
+  showTreasureOverlay(score, score>=60, score>=85 ? '獎勵：31 冰淇淋 🍦' : '');
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+
+
+function addUniqueOptions(correct){
+  const set = new Set([correct]);
+  const deltas = [1,2,3,4,5,10,-1,-2,-3,-4,-5,-10];
+  let i = 0;
+  while(set.size < 4 && i < 40){
+    const v = correct + deltas[i % deltas.length];
+    if(v >= 0) set.add(v);
+    i++;
+  }
+  const arr = Array.from(set).slice(0,4);
+  return shuffle(arr);
+}
+function makeMCQ(q, correct, formatter=(x)=>String(x)){
+  const optsRaw = addUniqueOptions(correct);
+  return { q, opts: optsRaw.map(formatter), ans: optsRaw.indexOf(correct) };
+}
+function fmtFraction(n,d){ return `${n}/${d}`; }
+
+function unitMathScenario(unit, index){
+  const t = pickTheme(index);
+  switch(unit.id){
+    case 1: {
+      const total = 1247 + index * 37;
+      const sale = 2386 + index * 29;
+      const near10 = Math.round(total / 10) * 10;
+      const floor100 = Math.floor(total / 100) * 100;
+      const ceil100 = Math.ceil(total / 100) * 100;
+      const diff = Math.abs(Math.round(sale / 100) * 100 - sale);
+      const passage = `${opener(index)}${t.hero}和${t.partner}在「${t.topic}」活動中，負責整理${t.place}前台的資料。這一場活動從早上開始就很熱鬧，有人排隊抽任務卡，有人忙著看展示牆上的攻略，也有人在留言板上討論哪個關卡最難。因為現場太忙，老師請四年級志工不要先追求非常精確的統計，而是先練習用概數快速掌握整體狀況。今天共發出 ${total} 張任務券，活動商品區的營收是 ${sale} 元。老師提醒大家，像這種資料整理時，要先看題目要取到哪一位：若只是想快速知道大約有多少人參加，可以取到十位；若是寫班級初步報告，常會取到百位。這不是隨便猜，而是用接近的數幫助自己比較大小、估算數量，也能更快判斷要不要補印名單、增派人手或追加材料。${t.hero}還在筆記本上寫下：概數雖然不是原數，但只要方法用對，就能讓整理速度快很多。${closer(index)}`;
+      return { passage, questions:[
+        makeMCQ(`任務券 ${total} 張，用四捨五入取到十位約是多少？`, near10),
+        makeMCQ(`任務券 ${total} 張，用無條件捨去法取到百位約是多少？`, floor100),
+        makeMCQ(`任務券 ${total} 張，用無條件進入法取到百位約是多少？`, ceil100),
+        makeMCQ(`營收 ${sale} 元，用四捨五入取到百位後，與原數相差多少元？`, diff)
+      ]};
+    }
+    case 2: {
+      const boxes = 6 + index % 4;
+      const perBox = 8 + index % 5;
+      const extra = 35 + index * 2;
+      const shared = 3 + index % 3;
+      const total = boxes * perBox + extra;
+      const adjusted = boxes * (perBox - 2) + extra;
+      const passage = `${opener(index)}${t.topic}進行到一半時，${t.hero}和${t.partner}要替大家補充闖關用的小卡片。倉庫裡原本整齊放著 ${boxes} 箱，每箱有 ${perBox} 張，後來又在工作桌抽屜裡找到 ${extra} 張散裝卡片。老師沒有叫大家直接心算，而是先請同學把數字旁的意思標出來：${boxes} 是箱數、${perBox} 是每箱張數、${extra} 是額外補上的零散數量。題目真正要考的，是你能不能從一大段文字裡分辨哪些量要先相乘、哪些量要再合併。這和打遊戲時先蒐集材料、再合成道具很像，順序一亂，答案就會整個偏掉。之後班長又說，全部卡片要平均分給 ${shared} 個小隊，讓每一隊都能用同樣數量完成任務。這時又多了一步除法，必須先把總數算出來再平分。像這類四則運算的素養題，表面是在整理活動道具，實際上是在看你是否會先乘除後加減、同級由左而右，並能把故事翻成正確的算式。${closer(index)}`;
+      return { passage, questions:[
+        makeMCQ(`先算箱內再加上桌上，全部共有多少張卡片？`, total),
+        makeMCQ(`算式 ${boxes} × ${perBox} + ${extra} 的結果是多少？`, total),
+        makeMCQ(`若平均分給 ${shared} 個小隊，每隊可分到多少張？`, total / shared),
+        makeMCQ(`若每箱先拿走 2 張後再加上桌上卡片，共有多少張？`, adjusted)
+      ]};
+    }
+    case 3: {
+      const rows = 4 + index % 3;
+      const cols = 5 + index % 4;
+      const squares = rows * cols;
+      const perim = 2 * (rows + cols);
+      const edgeOnly = 2*(rows-2)+2*(cols-2);
+      const passage = `${opener(index)}在${t.topic}的佈景設計環節中，${t.hero}要在方格紙上畫出一塊告示板，準備貼上規則和角色插圖。這塊板子畫成長方形，長有 ${cols} 格、寬有 ${rows} 格。老師一邊巡堂，一邊提醒大家：長方形不只是「看起來四四方方」，還有清楚的特徵，例如對邊互相平行、四個角都是直角。如果把這塊板子的外框描一圈，就是在想邊界長度；如果把裡面全部貼滿彩紙，就是在想共有多少個小方格。這種題目常把圖形特徵和計算混在一起考，因為真正重要的不是死背名稱，而是會從圖形的描述判斷它是哪一類，接著再數格子、算外框，甚至只算邊上中間那些位置。${t.partner}還提到，像搭方塊遊戲裡的地圖外牆時，也常會同時考慮外圍多長、裡面多大，所以數學圖形其實跟很多小朋友熟悉的場景非常像。${closer(index)}`;
+      return { passage, questions:[
+        makeMCQ(`這個長方形共有多少個小方格？`, squares),
+        makeMCQ(`沿著外框一圈共有多少格長？`, perim),
+        makeMCQ(`若不算四個角落，只算邊上中間的方格，共有多少格？`, edgeOnly),
+        makeMCQ(`長方形上下兩邊與左右兩邊，總共有幾組互相平行的邊？`, 2)
+      ]};
+    }
+    case 4: {
+      const d = 8 + (index % 5) * 2;
+      const a = 2 + index % 3;
+      const b = 3 + index % 4;
+      const total = a + b;
+      const left = d - total;
+      const times = a * 3;
+      const passage = `${opener(index)}${t.hero}和${t.partner}在${t.place}分享限定甜點。店員把一條聯名蛋糕平均切成 ${d} 份，方便大家邊聊天邊記錄每個人吃了多少。${t.hero}先吃了 ${a}/${d}，${t.partner}又吃了 ${b}/${d}。老師說，像這種題目要先抓住一個核心：分母相同，表示整條蛋糕被切成同樣大小的份數，所以要比較「一共吃了幾份」或「還剩幾份」時，可以直接處理分子。可是如果沒有先弄懂分母代表什麼，就很容易把上下都亂加，答案就會像把食譜材料比例寫錯一樣，整個走味。後來班上有人又提出延伸問題：如果${t.hero}剛剛那種份量連續吃 3 次，總共會吃掉多少？這就把分數和整數倍結合起來了。本單元的分數題經常披著蛋糕、披薩、飲料或點心分享的故事外衣，但真正考的是你能否看懂「平均分成幾份」與「取了幾份」這兩件事。${closer(index)}`;
+      return { passage, questions:[
+        { q:`兩人一共吃了蛋糕的幾分之幾？`, opts:[fmtFraction(total,d), fmtFraction(total+1,d), fmtFraction(total,d+2), fmtFraction(total-1,d)], ans:0 },
+        { q:`蛋糕還剩下幾分之幾？`, opts:[fmtFraction(left,d), fmtFraction(left-1,d), fmtFraction(left,d+2), fmtFraction(left+1,d)], ans:0 },
+        { q:`${t.hero}的份量若連續吃 3 次，共是幾分之幾？`, opts:[fmtFraction(times,d), fmtFraction(times+1,d), fmtFraction(times,d+2), fmtFraction(times-1,d)], ans:0 },
+        makeMCQ(`把整條蛋糕看成 ${d}/${d}，減去兩人吃掉的份量後，分子剩多少？`, left)
+      ]};
+    }
+    case 5: {
+      const layers = 2 + index % 3;
+      const each = 12 + index % 5;
+      const total = layers * each;
+      const add = 6 + index % 4;
+      const passage = `${opener(index)}在${t.topic}的場景搭建區，${t.hero}準備用小立方體做出一座模型地景。每一層整齊排了 ${each} 個小立方體，一共堆了 ${layers} 層，旁邊還另外放了 ${add} 個備用方塊，準備之後拿來補角落、加高塔頂或做入口。老師告訴大家，這一單元不是在算平面的大小，而是在想整個模型占了多少空間，也就是形體的大小。很多同學看立體圖時只會數看得到的方塊，可是如果題目已經清楚說明每層幾個、共有幾層，就要把文字條件一起放進來思考，才能知道整體實際用了多少塊。這很像在玩方塊建築遊戲時，從側面看覺得牆不多，實際上後面還有看不見的結構。如果拆掉一層，總數會怎麼變？如果把備用方塊都加上去，又會變成多少？這類題目其實是在訓練從敘述中建立空間感。${closer(index)}`;
+      return { passage, questions:[
+        makeMCQ(`模型本體共用了多少個小立方體？`, total),
+        makeMCQ(`若把備用的 ${add} 個也加進去，一共有多少個小立方體？`, total + add),
+        makeMCQ(`若拆掉 1 層，會少掉多少個小立方體？`, each),
+        makeMCQ(`剩下 ${layers-1} 層時，模型共有多少個小立方體？`, (layers-1)*each)
+      ]};
+    }
+    case 6: {
+      const price = (12 + index % 6) / 10;
+      const count = 3 + index % 5;
+      const total = +(price * count).toFixed(2);
+      const price2 = (125 + index * 3) / 100;
+      const total2 = +(price2 * 4).toFixed(2);
+      const diff = +(total2 - price2).toFixed(2);
+      const passage = `${opener(index)}${t.hero}正在拍攝${t.topic}的採買片段，今天要在${t.place}購買拍攝素材。彩色貼紙每張 ${price2.toFixed(2)} 元，閃亮筆每支 ${price.toFixed(1)} 元，小隊先拿了 ${count} 支閃亮筆，再買 4 張貼紙。畫面看起來像一般購物，但老師真正想考的是：你能不能從敘述中看出哪些是單價、哪些是數量，並用小數乘法求總價。很多人看到小數就先緊張，其實方法和整數乘法很像，只是算完後要把小數點放回正確位置，最後再用常識檢查答案，例如買好幾支筆後，總價應該比一支筆貴；4 張貼紙的總價，也應該比 1 張貼紙高。拍攝結束前，${t.partner}還想知道：如果先算 4 張貼紙總價，再減去 1 張貼紙的價格，還剩多少？若把筆和貼紙全部結帳，又要付多少？這類小數乘法素養題，就是把數學藏在商店、直播、點餐或網購情境裡。${closer(index)}`;
+      return { passage, questions:[
+        { q:`買 ${count} 支閃亮筆共要多少元？`, opts:[Number(total).toFixed(2), (total+1).toFixed(2), (total+0.5).toFixed(2), (Math.max(0,total-0.5)).toFixed(2)], ans:0 },
+        { q:`買 4 張貼紙共要多少元？`, opts:[total2.toFixed(2), (total2+0.1).toFixed(2), (total2+1).toFixed(2), (Math.max(0,total2-0.1)).toFixed(2)], ans:0 },
+        { q:`若 4 張貼紙的總價減去 1 張貼紙的價格，還剩多少元？`, opts:[diff.toFixed(2), (diff+0.1).toFixed(2), (diff+1).toFixed(2), (Math.max(0,diff-0.1)).toFixed(2)], ans:0 },
+        { q:`閃亮筆和貼紙全部一起買，共要多少元？`, opts:[(total+total2).toFixed(2), (total+total2+1).toFixed(2), (total+total2+0.1).toFixed(2), (Math.max(0,total+total2-0.1)).toFixed(2)], ans:0 }
+      ]};
+    }
+    case 7: {
+      const l = 8 + index % 5;
+      const w = 5 + index % 4;
+      const area = l * w;
+      const peri = 2 * (l + w);
+      const square = 6 + index % 4;
+      const passage = `${opener(index)}為了替${t.topic}做宣傳，${t.hero}要在${t.place}布置一塊長方形展示板，長 ${l} 公分、寬 ${w} 公分。老師故意把任務分成兩種：如果要在四周貼亮片邊條，就是在算外框一圈多長，也就是周長；如果要整面貼上背景紙，則是在算整個表面有多大，也就是面積。接著老師又拿出一塊邊長 ${square} 公分的正方形招牌，請大家比較長方形和正方形在計算上的不同。這一類題在段考很愛用海報、地墊、相框、包裝紙或舞台布景包裝，因為它能測出學生有沒有真正理解「一圈的長度」和「整面大小」是不同的量。${t.partner}說，有時候看起來像是在做美術，其實背後是在練非常重要的數學判斷：問題到底在問周長，還是面積？你只要先把這一點分清楚，再套上正確公式，整題就不會亂掉。${closer(index)}`;
+      return { passage, questions:[
+        makeMCQ(`長方形展示板的周長是多少公分？`, peri),
+        makeMCQ(`長方形展示板的面積是多少平方公分？`, area),
+        makeMCQ(`正方形招牌的周長是多少公分？`, square*4),
+        makeMCQ(`正方形招牌的面積是多少平方公分？`, square*square)
+      ]};
+    }
+    case 8: {
+      const a = 1 + index % 3;
+      const b = 2 + index % 4;
+      const d1 = 4 + index % 3;
+      const d2 = d1 * 2;
+      const n2 = a * 2;
+      const passage = `${opener(index)}${t.hero}和${t.partner}在${t.place}分配限定彩帶與裝飾紙。第一卷已經用了 ${a}/${d1}，第二卷用了 ${b}/${d2}。老師提醒同學，這一題不能只看哪個分母比較大、或哪個分子比較多，因為兩個分數都代表「整卷裡用掉多少部分」，比較時必須先想它們是不是能改寫成同樣的分母。於是老師拿出圖卡示範：如果把 ${a}/${d1} 的每一份再平均分成 2 份，原本的大小其實沒有變，只是寫法改了，這就叫等值分數。這種概念很重要，因為很多孩子在閱讀題時看見不同寫法就以為量不同，但其實它們可能一樣大。就像遊戲裡不同貨幣單位換算後可能代表同樣價值，分數也能改寫成不同形式。現在請你根據故事中的彩帶資料，找出與原分數相等的分數，並完成比較。${closer(index)}`;
+      return { passage, questions:[
+        { q:`和 ${a}/${d1} 相等的分數是哪一個？`, opts:[fmtFraction(n2,d2), fmtFraction(n2+1,d2), fmtFraction(a,d2), fmtFraction(a+1,d1)], ans:0 },
+        { q:`${a}/${d1} 和 ${n2}/${d2} 比較，哪一個正確？`, opts:['一樣大', `${a}/${d1} 較大`, `${n2}/${d2} 較大`, '無法比較'], ans:0 },
+        { q:`若 ${a}/${d1} 轉成分母是 ${d2} 的分數，分子應是多少？`, opts:[String(n2), String(n2+1), String(a), String(a+2)], ans:0 },
+        { q:`比較 ${a}/${d1} 與 ${b}/${d2} 時，若先把 ${a}/${d1} 轉成分母 ${d2}，新的分數是？`, opts:[fmtFraction(n2,d2), fmtFraction(n2+1,d2), fmtFraction(a,d2), fmtFraction(a+2,d2)], ans:0 }
+      ]};
+    }
+    case 9: {
+      const startH = 8 + index % 5;
+      const startM = [10,15,20,25,30][index % 5];
+      const durM = 35 + (index % 4) * 10;
+      const totalM = startH*60 + startM + durM;
+      const endH = Math.floor(totalM / 60);
+      const endM = totalM % 60;
+      const secs = (3 + index % 4) * 60;
+      const passage = `${opener(index)}${t.topic}的正式錄影在上午 ${startH} 點 ${String(startM).padStart(2,'0')} 分開始，${t.hero}負責看流程表，${t.partner}負責提醒大家換場。第一段活動共進行 ${durM} 分鐘，內容包含暖場、任務說明和實際闖關。老師在黑板上寫下時間後，先問同學：如果活動跨過整點，直接用眼睛看時鐘會不會算錯？有些人喜歡一格一格往後推，有些人會先把時和分都換成總分鐘數再計算，兩種方法都可以，但關鍵是單位要一致。後來暖身遊戲又需要 ${secs} 秒，這時還得把秒和分鐘互相換算，才不會把 60 進位忘掉。這類時間題常藏在活動流程、影片拍攝、比賽賽程或交通安排裡，表面看起來很生活化，其實每一步都在考你能不能抓出開始時刻、經過時間，以及何時該先換算單位。${closer(index)}`;
+      return { passage, questions:[
+        { q:`第一段活動結束時是幾點幾分？`, opts:[`${endH}點${String(endM).padStart(2,'0')}分`, `${endH}點${String((endM+5)%60).padStart(2,'0')}分`, `${endH+1}點${String(endM).padStart(2,'0')}分`, `${startH}點${String((startM+durM)%60).padStart(2,'0')}分`], ans:0 },
+        makeMCQ(`這段活動共進行多少分鐘？`, durM),
+        makeMCQ(`${secs} 秒等於多少分鐘？`, secs/60),
+        makeMCQ(`從 ${startH} 點 ${String(startM).padStart(2,'0')} 分到 ${endH} 點 ${String(endM).padStart(2,'0')} 分，共經過多少分鐘？`, durM)
+      ]};
+    }
+    case 10: {
+      const first = 5 + index % 4;
+      const diff = 3 + index % 3;
+      const second = first + diff;
+      const third = second + diff;
+      const fourth = third + diff;
+      const evenOdd = fourth % 2 === 0 ? '偶數' : '奇數';
+      const passage = `${opener(index)}在${t.topic}的最終回合裡，${t.hero}要依照線索找到能量石的規律。第一站有 ${first} 顆，第二站有 ${second} 顆，第三站有 ${third} 顆。很多同學看到這種題就想直接猜第四站，但老師特別提醒：規律題最重要的不是猜中，而是先說出「每一步怎麼變」。有些數列是每次都加同樣的數，有些則可能重複循環或交替變化，所以一定要先比較相鄰兩個數之間的差。等你發現第一站到第二站、第二站到第三站都增加同樣的數後，後面的答案就能繼續往下推。這很像遊戲關卡裡的獎勵表，若你看懂成長規律，就能預測下一關的資源數量，甚至判斷拿到的是奇數還是偶數。故事看起來像闖關，其實考的是推理和觀察。${closer(index)}`;
+      return { passage, questions:[
+        makeMCQ(`照這個規律，第四站會有幾顆能量石？`, fourth),
+        makeMCQ(`每往下一站，能量石增加幾顆？`, diff),
+        { q:`第四站的數是什麼性質？`, opts:[evenOdd, evenOdd==='偶數'?'奇數':'偶數', '質數', '無法判斷'], ans:0 },
+        makeMCQ(`若規律再繼續一次，第五站會有幾顆能量石？`, fourth + diff)
+      ]};
+    }
+    default:
+      return { passage:'', questions:[] };
+  }
+}
+function buildChallengeBank(unit){
+  const bank = [];
+  for(let i=0;i<20;i++) bank.push(unitMathScenario(unit, i));
+  return bank;
+}
+
+const challengeQueueState = {};
+function challengeKey(unitId){ return `g4s2_challenge_queue_u${unitId}`; }
+function loadChallengeQueue(unitId){
+  if(challengeQueueState[unitId]) return challengeQueueState[unitId];
+  try{
+    const raw = localStorage.getItem(challengeKey(unitId));
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed)){
+        challengeQueueState[unitId] = parsed;
+        return parsed;
+      }
+    }
+  }catch(e){}
+  challengeQueueState[unitId] = [];
+  return challengeQueueState[unitId];
+}
+function saveChallengeQueue(unitId){
+  try{ localStorage.setItem(challengeKey(unitId), JSON.stringify(challengeQueueState[unitId] || [])); }catch(e){}
+}
+function refillChallengeQueue(unitId, size){
+  const current = loadChallengeQueue(unitId);
+  const available = [...Array(size).keys()].filter(i => !current.includes(i));
+  if(available.length){
+    challengeQueueState[unitId] = current.concat(shuffle(available));
+  }
+  if(challengeQueueState[unitId].length < 5){
+    challengeQueueState[unitId] = challengeQueueState[unitId].concat(shuffle([...Array(size).keys()]));
+  }
+  saveChallengeQueue(unitId);
+}
+function getNextChallengeSets(unit){
+  const bank = buildChallengeBank(unit);
+  loadChallengeQueue(unit.id);
+  if(challengeQueueState[unit.id].length < 5) refillChallengeQueue(unit.id, bank.length);
+  const selectedIdx = challengeQueueState[unit.id].splice(0,5);
+  saveChallengeQueue(unit.id);
+  return selectedIdx.map(i => bank[i]);
+}
+function openChallenge(unitId){
+  const u = units.find(x=>x.id===unitId);
+  const sets = getNextChallengeSets(u);
+  const panel = document.getElementById('contentPanel');
+  panel.innerHTML = `
+    <div class="toolbar">
+      <button class="back" onclick="openUnit(${u.id})">← 返回單元</button>
+      <div class="pill">第${u.id}單元｜素養挑戰</div>
+      <button class="btn-secondary" onclick="openChallenge(${u.id})">下一批 5 題組</button>
+    </div>
+    <div class="card">
+      <div class="section-title">${u.title}｜素養挑戰</div>
+      <div class="small">題庫共 20 題組，每次亂數抽 5 題組；同一單元會先輪完 20 題組後才重新洗牌。每題組 4 題四選一，共 20 題；每題 5 分，滿分 100。60 分及格，85 分以上獎勵 31 冰淇淋。題目較長時可先用螢光筆劃記條件。</div>
+      <form id="challengeForm">
+        ${sets.map((set,setIdx)=>`
+          <div class="challenge-set">
+            <h3>題組 ${setIdx+1}</h3>
+            <div class="passage">${set.passage}</div>
+            ${set.questions.map((q,qIdx)=>`
+              <div class="question">
+                <h4>${setIdx+1}-${qIdx+1}. ${q.q}</h4>
+                <div class="options">
+                  ${q.opts.map((opt,optIdx)=>`<label><input type="radio" name="s${setIdx}q${qIdx}" value="${optIdx}">${opt}</label>`).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+        <div class="submit-row">
+          <button type="button" class="btn-primary" onclick='gradeChallenge(${JSON.stringify(sets).replace(/'/g,"&#39;")}, ${u.id})'>交卷</button>
+        </div>
+      </form>
+      <div id="challengeResult"></div>
+    </div>`;
+  showPanel('contentPanel');
+  attachOptionEffects(panel);
+}
+
+function gradeChallenge(sets, unitId){
+  const form = document.getElementById('challengeForm');
+  let correct = 0;
+  let total = 0;
+  sets.forEach((set,setIdx)=>{
+    set.questions.forEach((q,qIdx)=>{
+      total++;
+      const chosen = form.querySelector(`input[name="s${setIdx}q${qIdx}"]:checked`);
+      if(chosen && Number(chosen.value) === q.ans) correct++;
+    });
+  });
+  const score = correct * 5;
+  let html = `<div class="result ${score>=60?'pass':'fail'}">成績：${score} 分｜答對 ${correct} / ${total} 題｜${score>=60?'及格':'尚未及格，再讀一次文章重點會更好'}</div>`;
+  if(score>=85) html += `<div class="reward">太棒了！85 分以上，獎勵：31 冰淇淋 🍦</div>`;
+  html += reviewBlockForChallenge(sets, form);
+  html += `<div class="submit-row"><button class="btn-secondary" onclick="openChallenge(${unitId})">再挑戰一次</button></div>`;
+  document.getElementById('challengeResult').innerHTML = html;
+  if(score>=60) playGood(); else playBad();
+  showTreasureOverlay(score, score>=60, score>=85 ? '獎勵：31 冰淇淋 🍦' : '');
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+
+
+const audioCtx = window.AudioContext ? new AudioContext() : (window.webkitAudioContext ? new webkitAudioContext() : null);
+let audioEnabled = false;
+function unlockAudio(){
+  if(audioCtx && !audioEnabled){ audioEnabled = true; if(audioCtx.state === 'suspended') audioCtx.resume(); }
+}
+document.addEventListener('click', unlockAudio, {once:false});
+function playTone(freq=440, duration=.08, type='sine', volume=.035, delay=0){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime + delay;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, t);
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(volume, t + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(t); osc.stop(t + duration + 0.02);
+}
+function playClick(){ playTone(520,.05,'triangle',.02); }
+function playGood(){ playTone(660,.08,'triangle',.03); playTone(880,.12,'triangle',.025,.07); }
+function playBad(){ playTone(240,.09,'sawtooth',.022); playTone(180,.12,'sawtooth',.018,.07); }
+function playTreasure(){ [523,659,784,1046].forEach((f,i)=>playTone(f,.15,'triangle',.03,i*.08)); }
+
+let bgmTimer = null;
+let bgmStep = 0;
+let bgmOn = false;
+const bgmLead = [523,659,784,659,587,659,698,784,659,587,523,392,440,523,659,698];
+const bgmBell = [1046,1318,1568,1318,1174,1318,1396,1568,1318,1174,1046,784,880,1046,1318,1396];
+const bgmBass = [261,196,220,196,174,196,220,261];
+function updateMusicStatus(text){ const el=document.getElementById('musicStatus'); if(el) el.textContent=text; }
+function bgmNote(freq, duration, type, volume, delay=0){ playTone(freq,duration,type,volume,delay); }
+function startBgm(){
+  if(!audioCtx) { updateMusicStatus('這個瀏覽器不支援背景音功能'); return; }
+  unlockAudio();
+  stopBgm();
+  bgmOn = true;
+  bgmStep = 0;
+  const btn=document.getElementById('musicToggle'); if(btn) btn.textContent='⏸️ 暫停音樂';
+  updateMusicStatus('播放中｜原創輕柔鋼琴／鐘琴／低音弦樂風');
+  const tick = ()=>{
+    const i = bgmStep % bgmLead.length;
+    const j = bgmStep % bgmBass.length;
+    bgmNote(bgmBass[j], 0.55, 'sine', 0.012);
+    bgmNote(bgmLead[i], 0.32, 'triangle', 0.010, 0.03);
+    bgmNote(bgmBell[i], 0.18, 'sine', 0.004, 0.11);
+    if(i % 4 === 0) bgmNote(bgmLead[(i+2)%bgmLead.length]/2, 0.4, 'sine', 0.004, 0.16);
+    bgmStep++;
+  };
+  tick();
+  bgmTimer = setInterval(tick, 620);
+}
+function stopBgm(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer=null; } bgmOn=false; const btn=document.getElementById('musicToggle'); if(btn) btn.textContent='🎵 開啟音樂'; updateMusicStatus('未播放｜可在 Safari 或 GitHub Pages 開啟後點擊播放'); }
+function toggleBgm(){ if(bgmOn) stopBgm(); else startBgm(); }
+function attachOptionEffects(scope=document){
+  scope.querySelectorAll('.options label').forEach(label=>{
+    label.addEventListener('click', ()=>{
+      playClick();
+      const wrap = label.parentElement;
+      wrap.querySelectorAll('label').forEach(l=>l.classList.remove('selected'));
+      label.classList.add('selected');
+    });
+  });
+}
+function burstParticles(symbols=['✨','⭐','🪙','💎'], count=18){
+  const layer=document.getElementById('fxLayer');
+  if(!layer) return;
+  const rect={x:window.innerWidth/2,y:window.innerHeight/2};
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.className='particle';
+    el.textContent=symbols[Math.floor(Math.random()*symbols.length)];
+    el.style.left=rect.x+'px';
+    el.style.top=rect.y+'px';
+    el.style.setProperty('--sx','0px');
+    el.style.setProperty('--sy','0px');
+    el.style.setProperty('--tx',`${(Math.random()*320-160).toFixed(0)}px`);
+    el.style.setProperty('--ty',`${(-80-Math.random()*260).toFixed(0)}px`);
+    layer.appendChild(el);
+    setTimeout(()=>el.remove(),1500);
+  }
+}
+function showTreasureOverlay(score, passed, rewardText=''){
+  const ov=document.getElementById('treasureOverlay');
+  const title=document.getElementById('treasureTitle');
+  const scoreEl=document.getElementById('treasureScore');
+  const text=document.getElementById('treasureText');
+  const loot=document.getElementById('treasureLoot');
+  const icon=document.getElementById('treasureIcon');
+  const stars=document.getElementById('treasureStars');
+  const fill=document.getElementById('journeyFill');
+  scoreEl.textContent=`分數：${score} 分`;
+  stars.innerHTML='';
+  let starCount = score>=85 ? 5 : score>=60 ? 3 : 1;
+  for(let i=0;i<starCount;i++) stars.innerHTML += `<span style="animation-delay:${i*0.08}s">⭐</span>`;
+  fill.style.width='0%';
+  requestAnimationFrame(()=> fill.style.width = `${Math.min(100,score)}%`);
+  if(score>=85){
+    title.textContent='寶箱打開了！';
+    text.textContent='你這次不只闖關成功，還達成高分成就。';
+    loot.textContent=rewardText || '獎勵：31 冰淇淋 🍦';
+    icon.textContent='🧰';
+    playTreasure();
+    burstParticles(['🪙','✨','🍦','💎'],22);
+  } else if(passed){
+    title.textContent='闖關成功！';
+    text.textContent='你已順利通過這一關，繼續前進吧。';
+    loot.textContent='本次獲得：通關徽章 🏅';
+    icon.textContent='🏅';
+    playGood();
+    burstParticles(['✨','⭐','🏅'],16);
+  } else {
+    title.textContent='再挑戰一次！';
+    text.textContent='你已經找到一些線索，再讀一次題目會更穩。';
+    loot.textContent='本次獲得：冒險提示卷軸 📜';
+    icon.textContent='📜';
+    playBad();
+  }
+  ov.classList.add('show');
+}
+function closeTreasure(e){ if(e) e.stopPropagation(); document.getElementById('treasureOverlay').classList.remove('show'); }
+function applyHighlight(){
+  const sel = window.getSelection();
+  if(!sel || sel.isCollapsed || sel.rangeCount===0) return;
+  const range = sel.getRangeAt(0);
+  const span = document.createElement('span');
+  span.className='highlight-mark';
+  try{ range.surroundContents(span); playClick(); sel.removeAllRanges(); }catch(err){ playBad(); }
+}
+function clearHighlights(){
+  document.querySelectorAll('.highlight-mark').forEach(el=>{
+    const parent=el.parentNode; while(el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el); parent.normalize();
+  });
+  playClick();
+}
+function reviewBlockForPractice(bank, form){
+  return `<div class="review">${bank.map((q,idx)=>{
+    const chosen = form.querySelector(`input[name="q${idx}"]:checked`);
+    const chosenIndex = chosen ? Number(chosen.value) : null;
+    const state = chosen===null ? 'unanswered' : (chosenIndex===q[2] ? 'correct':'wrong');
+    return `<div class="question ${state}"><h4>${idx+1}. ${q[0]}</h4><div class="answer-line"><strong>你的答案：</strong>${chosenIndex===null?'未作答':q[1][chosenIndex]}</div><div class="answer-line"><strong>正確答案：</strong>${q[1][q[2]]}</div></div>`;
+  }).join('')}</div>`;
+}
+function reviewBlockForChallenge(sets, form){
+  let n=0;
+  return `<div class="review">${sets.map((set,setIdx)=>`<div class="challenge-set"><h3>題組 ${setIdx+1}</h3>${set.questions.map((q,qIdx)=>{
+    n++;
+    const chosen = form.querySelector(`input[name="s${setIdx}q${qIdx}"]:checked`);
+    const chosenIndex = chosen ? Number(chosen.value) : null;
+    const state = chosen===null ? 'unanswered' : (chosenIndex===q.ans ? 'correct':'wrong');
+    return `<div class="question ${state}"><h4>${n}. ${q.q}</h4><div class="answer-line"><strong>你的答案：</strong>${chosenIndex===null?'未作答':q.opts[chosenIndex]}</div><div class="answer-line"><strong>正確答案：</strong>${q.opts[q.ans]}</div></div>`;
+  }).join('')}</div>`).join('')}</div>`;
+}
+
+
+document.addEventListener('click', (e)=>{ if(e.target.closest('button,.unit-card,.subcard')) playClick(); });
+renderHome();
+</script>
+
+<div class="highlight-tools">
+  <button class="btn-accent pulse" onclick="applyHighlight()">🖍️ 螢光筆</button>
+  <button class="btn-secondary" onclick="clearHighlights()">清除劃記</button>
+</div>
+
+<div class="music-dock">
+  <button id="musicToggle" class="btn-secondary tiny" onclick="toggleBgm()">🎵 開啟音樂</button>
+  <div class="music-meta">
+    <strong>冒險鋼琴／水晶風背景音</strong>
+    <span id="musicStatus">未播放｜可在 Safari 或 GitHub Pages 開啟後點擊播放</span>
+  </div>
+</div>
+
+<div id="fxLayer" class="fx-layer"></div>
+<div id="treasureOverlay" class="overlay" onclick="closeTreasure(event)">
+  <div class="treasure-box">
+    <div class="big-icon" id="treasureIcon">🏆</div>
+    <h2 id="treasureTitle">闖關完成！</h2>
+    <div class="score-tag" id="treasureScore">分數：100 分</div>
+    <div class="score-stars" id="treasureStars"></div>
+    <div class="journey-bar"><div id="journeyFill" class="journey-fill"></div></div>
+    <p id="treasureText">你成功完成這一輪挑戰。</p>
+    <div class="loot" id="treasureLoot"></div>
+    <div class="submit-row"><button class="btn-primary" onclick="closeTreasure(event)">收下寶藏</button></div>
+  </div>
+</div>
+
+</body>
+</html>
